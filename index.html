@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>modemnakata</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0c0c;
+      --fg: #e8e8e8;
+      --accent: #00ff88;
+      --accent-dim: #00cc6a;
+      --border: #333;
+      --card: #141414;
+      --warn: #ff4444;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f5f5f5;
+        --fg: #1a1a1a;
+        --accent: #008844;
+        --accent-dim: #006633;
+        --border: #ddd;
+        --card: #fff;
+        --warn: #cc0000;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.03),
+        rgba(0, 0, 0, 0.03) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      animation: scan 8s linear infinite;
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(6px); }
+    }
+
+    .glitch {
+      position: relative;
+      font-family: 'Special Elite', cursive;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .glitch::before {
+      animation: glitch-1 2.5s infinite linear alternate-reverse;
+      clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+      color: var(--warn);
+      z-index: -1;
+    }
+
+    .glitch::after {
+      animation: glitch-2 3s infinite linear alternate-reverse;
+      clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+      color: #00ffff;
+      z-index: -2;
+    }
+
+    @keyframes glitch-1 {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-2px); }
+      40% { transform: translateX(2px); }
+      60% { transform: translateX(-1px); }
+      80% { transform: translateX(1px); }
+    }
+
+    @keyframes glitch-2 {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(2px); }
+      40% { transform: translateX(-2px); }
+      60% { transform: translateX(1px); }
+      80% { transform: translateX(-1px); }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 2px solid var(--border);
+      position: relative;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 2px;
+      background: var(--accent);
+      box-shadow: 0 0 20px var(--accent);
+    }
+
+    .handle {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--fg);
+      text-shadow: 0 0 30px var(--accent);
+      animation: flicker 4s infinite alternate;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; text-shadow: 0 0 30px var(--accent), 0 0 60px var(--accent); }
+      50% { opacity: 0.95; text-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); }
+    }
+
+    .tagline {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      color: var(--accent);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .section {
+      margin-bottom: 2.5rem;
+    }
+
+    .section-title {
+      font-family: 'Special Elite', cursive;
+      font-size: 1.3rem;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-title::before {
+      content: '>';
+      color: var(--warn);
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .key-block {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    .key-header {
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .uid-line {
+      color: #888;
+    }
+
+    .fingerprint {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin: 1rem 0;
+      word-break: break-all;
+    }
+
+    .donate-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      text-align: center;
+    }
+
+    .monero-address {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 1rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      word-break: break-all;
+      max-width: 100%;
+      color: var(--fg);
+    }
+
+    .qr-placeholder {
+      width: 200px;
+      height: 200px;
+      background: repeating-linear-gradient(
+        45deg,
+        var(--border),
+        var(--border) 10px,
+        var(--card) 10px,
+        var(--card) 20px
+      );
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #666;
+      font-size: 0.75rem;
+    }
+
+    .qr-placeholder svg {
+      width: 80px;
+      height: 80px;
+      stroke: var(--accent);
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .link-btn {
+      font-family: 'Special Elite', cursive;
+      font-size: 0.9rem;
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--fg);
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .link-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .link-btn:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.3);
+    }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 0.75rem;
+      color: #666;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1.2em;
+      background: var(--accent);
+      margin-left: 4px;
+      animation: cursor-blink 1s infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes cursor-blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .terminal-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .terminal-line .prompt {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .terminal-line .command {
+      color: var(--fg);
+    }
+
+    .terminal-line .output {
+      color: #888;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 2rem 1rem;
+      }
+      .handle {
+        font-size: 2rem;
+      }
+      .qr-placeholder {
+        width: 160px;
+        height: 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines" aria-hidden="true"></div>
+  
+  <div class="container">
+    <header>
+      <h1 class="handle glitch" data-text="modemnakata">modemnakata</h1>
+      <p class="tagline">Point Of Optimal Performance</p>
+    </header>
+
+    <section class="section">
+      <h2 class="section-title">PGP Public Key</h2>
+      <div class="card">
+        <div class="key-header">brainpoolP256r1 / CB891ADC6E33A686</div>
+        <div class="key-header">Created: 2026-04-14 [SC]</div>
+        <div class="uid-line uid-line">uid  [ultimate] Nakata Modem (133742069) <nakatamodem@disroot.org></div>
+        <div class="uid-line uid-line">sub  brainpoolP256r1/68848EEA0B537FB9 2026-04-14 [E]</div>
+        
+        <div class="fingerprint">
+          B88A FA89 0C04 E0F5 C61C  9F69 CB89 1ADC 6E33 A686
+        </div>
+
+        <div class="key-block">-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mFMEad35oRMJKyQDAwIIAQEHAgMERluByBPrdtyt8sElShCZs3icwa4simsZZwpe
+SePKvV5AmGtkzUn4NxcfFsYlguj8nvN8p32cYc/rut9xplnrm7QyTmFrYXRhIE1v
+ZGVtICgxMzM3NDIwNjkpIDxuYWthdGFtb2RlbUBkaXNyb290Lm9yZz6IkAQTEwgA
+OBYhBLiK+okMBOD1xhyfacuJGtxuM6aGBQJp3fmhAhsDBQsJCAcCBhUKCQgLAgQW
+AgMBAh4BAheAAAoJEMuJGtxuM6aGG9QBAKUv1T7zqwedEh/lr7WGEsx6JmXUqn0i
+1kLKsKDpJ0HsAP9lliyRNsgCD5vhAwJVBhq/WHcbYf+UcbTxMcA6LPPjALhXBGnd
+/MISCSskAwMCCAEBBwIDBIZGk6n63ihdZTjbThKb5CBumMfcKzvg6vQHqTIZ+y21
+GNmokFXsfSqadGA8sLVUyF0PqPUUOhm5TCUfEysDsPoDAQgHiHgEGBMIACAWIQS4
+ivqJDATg9cYcn2nLiRrcbjOmhgUCad38wgIbDAAKCRDLiRrcbjOmhjiWAP4nGh0l
+BxGefHNhhSExkU4Pi2tgbwhpKtdmQDdOU2naRQD/W9sVweIaGg3wCyR7iDQDQqq8
+yKXm0TVwBWVAW6t9Cm0=
+=wEEh
+-----END PGP PUBLIC KEY BLOCK-----</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Donate</h2>
+      <div class="card donate-section">
+        <div class="key-header">Monero (XMR) — mainnet subaddress</div>
+        <div class="monero-address">85ifMryXKt79vSwCojDbFGUd3wM9MrSHUDegKthugb62PNbRv914nDKZzZFS8zBKuwArQTipVgJeoGo8gcYBeZQ4F19Z8im</div>
+        
+        <div class="qr-placeholder" role="img" aria-label="Monero donation QR code">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="8" y="8" width="8" height="8"></rect>
+            <rect x="10" y="10" width="4" height="4"></rect>
+          </svg>
+          <span>QR CODE</span>
+          <span>monero: URI</span>
+        </div>
+        <p style="font-size: 0.75rem; color: #888;">Add a real QR code by replacing this placeholder</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Links</h2>
+      <div class="card">
+        <div class="links">
+          <a href="https://github.com/modemnakata" class="link-btn" target="_blank" rel="noopener">GitHub</a>
+          <a href="mailto:nakatamodem@disroot.org" class="link-btn">Email</a>
+          <a href="https://disroot.org" class="link-btn" target="_blank" rel="noopener">Disroot</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">System Status</h2>
+      <div class="card">
+        <div class="terminal-line">
+          <span class="prompt">$</span>
+          <span class="command">whoami</span>
+        </div>
+        <div class="terminal-line">
+          <span class="output">modemnakata</span>
+        </div>
+        <div class="terminal-line">
+          <span class="prompt">$</span>
+          <span class="command">uptime</span>
+        </div>
+        <div class="terminal-line">
+          <span class="output">active since 2026</span>
+        </div>
+        <div class="terminal-line">
+          <span class="prompt">$</span>
+          <span class="command">pgp --verify</span>
+        </div>
+        <div class="terminal-line">
+          <span class="output">trusted: CB891ADC6E33A686</span>
+        </div>
+        <div class="terminal-line">
+          <span class="prompt">$</span>
+          <span class="command">xmr --balance</span>
+        </div>
+        <div class="terminal-line">
+          <span class="output">accepting donations...</span>
+        </div>
+        <div class="terminal-line">
+          <span class="prompt">$</span>
+          <span class="command">_</span>
+          <span class="cursor"></span>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>modemnakata.github.io — built with <span style="color: var(--warn);">♥</span> and paranoia</p>
+      <p style="margin-top: 0.5rem;">PGP: CB891ADC6E33A686 | XMR: 85ifMryXKt79vSwC...</p>
+    </footer>
+  </div>
+
+  <script>
+    // Subtle terminal typing effect for the cursor line
+    const cursor = document.querySelector('.cursor');
+    if (cursor) {
+      setInterval(() => {
+        cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
+      }, 500);
+    }
+
+    // Add subtle mouse-follow glow on cards
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // Konami code easter egg
+    let konami = [];
+    const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+    document.addEventListener('keydown', (e) => {
+      konami.push(e.code);
+      if (konami.length > konamiCode.length) konami.shift();
+      if (konami.join(',') === konamiCode.join(',')) {
+        document.body.style.filter = 'hue-rotate(180deg) invert(1)';
+        setTimeout(() => document.body.style.filter = '', 3000);
+        konami = [];
+      }
+    });
+  </script>
+</body>
+</html>
