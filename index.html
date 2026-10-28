@@ -35,6 +35,10 @@
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'JetBrains Mono', monospace;
       background: var(--bg);
@@ -43,6 +47,7 @@
       line-height: 1.6;
     }
 
+    /* Optimized scanlines - using opacity animation instead of transform */
     .scanlines {
       position: fixed;
       top: 0;
@@ -51,19 +56,36 @@
       height: 100%;
       pointer-events: none;
       z-index: 9999;
-      background: repeating-linear-gradient(
+      background-image: repeating-linear-gradient(
         0deg,
-        rgba(0, 0, 0, 0.03),
-        rgba(0, 0, 0, 0.03) 1px,
+        rgba(0, 0, 0, 0.04),
+        rgba(0, 0, 0, 0.04) 1px,
         transparent 1px,
         transparent 3px
       );
-      animation: scan 8s linear infinite;
+      background-size: 100% 6px;
+      animation: scanlines-opacity 8s linear infinite;
+      will-change: opacity;
     }
 
-    @keyframes scan {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(6px); }
+    @keyframes scanlines-opacity {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      .scanlines,
+      .glitch,
+      .handle,
+      .cursor,
+      .section-title::before {
+        animation: none !important;
+      }
+      .glitch::before,
+      .glitch::after {
+        display: none;
+      }
     }
 
     .glitch {
@@ -79,17 +101,18 @@
       left: 0;
       width: 100%;
       height: 100%;
+      will-change: transform;
     }
 
     .glitch::before {
-      animation: glitch-1 2.5s infinite linear alternate-reverse;
+      animation: glitch-1 3s infinite linear alternate-reverse;
       clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
       color: var(--warn);
       z-index: -1;
     }
 
     .glitch::after {
-      animation: glitch-2 3s infinite linear alternate-reverse;
+      animation: glitch-2 3.5s infinite linear alternate-reverse;
       clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
       color: #00ffff;
       z-index: -2;
@@ -97,18 +120,14 @@
 
     @keyframes glitch-1 {
       0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(-2px); }
-      40% { transform: translateX(2px); }
-      60% { transform: translateX(-1px); }
-      80% { transform: translateX(1px); }
+      33% { transform: translateX(-1px); }
+      66% { transform: translateX(1px); }
     }
 
     @keyframes glitch-2 {
       0%, 100% { transform: translateX(0); }
-      20% { transform: translateX(2px); }
-      40% { transform: translateX(-2px); }
-      60% { transform: translateX(1px); }
-      80% { transform: translateX(-1px); }
+      33% { transform: translateX(1px); }
+      66% { transform: translateX(-1px); }
     }
 
     .container {
@@ -146,12 +165,13 @@
       letter-spacing: 0.1em;
       color: var(--fg);
       text-shadow: 0 0 30px var(--accent);
-      animation: flicker 4s infinite alternate;
+      animation: flicker 6s infinite alternate;
+      will-change: opacity, text-shadow;
     }
 
     @keyframes flicker {
       0%, 100% { opacity: 1; text-shadow: 0 0 30px var(--accent), 0 0 60px var(--accent); }
-      50% { opacity: 0.95; text-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); }
+      50% { opacity: 0.92; text-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent); }
     }
 
     .tagline {
@@ -180,7 +200,8 @@
     .section-title::before {
       content: '>';
       color: var(--warn);
-      animation: blink 1s infinite;
+      animation: blink 1.5s infinite;
+      will-change: opacity;
     }
 
     @keyframes blink {
@@ -272,31 +293,20 @@
       color: var(--fg);
     }
 
-    .qr-placeholder {
+    .qr-code {
       width: 200px;
       height: 200px;
-      background: repeating-linear-gradient(
-        45deg,
-        var(--border),
-        var(--border) 10px,
-        var(--card) 10px,
-        var(--card) 20px
-      );
       border: 2px solid var(--border);
       border-radius: 8px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      color: #666;
-      font-size: 0.75rem;
+      background: var(--card);
+      padding: 8px;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
     }
 
-    .qr-placeholder svg {
-      width: 80px;
-      height: 80px;
-      stroke: var(--accent);
+    .qr-code img {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .links {
@@ -351,6 +361,7 @@
       margin-left: 4px;
       animation: cursor-blink 1s infinite;
       vertical-align: text-bottom;
+      will-change: opacity;
     }
 
     @keyframes cursor-blink {
@@ -386,7 +397,7 @@
       .handle {
         font-size: 2rem;
       }
-      .qr-placeholder {
+      .qr-code {
         width: 160px;
         height: 160px;
       }
@@ -436,21 +447,12 @@ yKXm0TVwBWVAW6t9Cm0=
       <h2 class="section-title">Donate</h2>
       <div class="card donate-section">
         <div class="key-header">Monero (XMR) — mainnet subaddress</div>
-        <div class="monero-address">85ifMryXKt79vSwCojDbFGUd3wM9MrSHUDegKthugb62PNbRv914nDKZzZFS8zBKuwArQTipVgJeoGo8gcYBeZQ4F19Z8im</div>
+        <div class="monero-address" id="xmr-address">85ifMryXKt79vSwCojDbFGUd3wM9MrSHUDegKthugb62PNbRv914nDKZzZFS8zBKuwArQTipVgJeoGo8gcYBeZQ4F19Z8im</div>
         
-        <div class="qr-placeholder" role="img" aria-label="Monero donation QR code">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="8" y="8" width="8" height="8"></rect>
-            <rect x="10" y="10" width="4" height="4"></rect>
-          </svg>
-          <span>QR CODE</span>
-          <span>monero: URI</span>
+        <div class="qr-code" id="qr-container" role="img" aria-label="Monero donation QR code">
+          <img id="qr-image" alt="Monero QR code" src="" />
         </div>
-        <p style="font-size: 0.75rem; color: #888;">Add a real QR code by replacing this placeholder</p>
+        <button class="link-btn" onclick="copyXMR()" style="margin-top: 0.5rem;">Copy Address</button>
       </div>
     </section>
 
@@ -511,37 +513,91 @@ yKXm0TVwBWVAW6t9Cm0=
   </div>
 
   <script>
-    // Subtle terminal typing effect for the cursor line
-    const cursor = document.querySelector('.cursor');
-    if (cursor) {
-      setInterval(() => {
-        cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
-      }, 500);
+    // Generate QR code using QRCode.js (loaded from CDN)
+    // Monero URI format: monero:<address>?tx_description=Donation
+    const xmrAddress = '85ifMryXKt79vSwCojDbFGUd3wM9MrSHUDegKthugb62PNbRv914nDKZzZFS8zBKuwArQTipVgJeoGo8gcYBeZQ4F19Z8im';
+    const moneroURI = `monero:${xmrAddress}?tx_description=Donation%20to%20modemnakata`;
+
+    // Load QRCode.js dynamically and generate QR
+    function loadQRCode() {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js';
+      script.onload = generateQR;
+      script.onerror = fallbackQR;
+      document.head.appendChild(script);
     }
 
-    // Add subtle mouse-follow glow on cards
-    document.querySelectorAll('.card').forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        card.style.setProperty('--mouse-x', `${x}px`);
-        card.style.setProperty('--mouse-y', `${y}px`);
-      });
-    });
+    function generateQR() {
+      try {
+        new QRCode(document.getElementById('qr-image'), {
+          text: moneroURI,
+          width: 184,
+          height: 184,
+          colorDark: '#00ff88',
+          colorLight: '#0c0c0c',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } catch (e) {
+        fallbackQR();
+      }
+    }
 
-    // Konami code easter egg
+    function fallbackQR() {
+      // Fallback: use Google Charts API or a simple placeholder
+      const img = document.getElementById('qr-image');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=184x184&data=${encodeURIComponent(moneroURI)}&color=00ff88&bgcolor=0c0c0c&qzone=1&margin=0`;
+      img.onerror = () => {
+        // Final fallback - SVG pattern
+        img.style.display = 'none';
+        document.getElementById('qr-container').innerHTML = `
+          <svg viewBox="0 0 200 200" width="200" height="200" style="background:#0c0c0c">
+            <rect x="8" y="8" width="184" height="184" fill="#0c0c0c"/>
+            <text x="100" y="100" text-anchor="middle" fill="#00ff88" font-family="monospace" font-size="10">QR LOAD FAILED</text>
+            <text x="100" y="115" text-anchor="middle" fill="#666" font-family="monospace" font-size="8">monero:85ifMryXKt79...</text>
+          </svg>
+        `;
+      };
+    }
+
+    function copyXMR() {
+      navigator.clipboard.writeText(xmrAddress).then(() => {
+        const btn = event.target;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.borderColor = 'var(--accent)';
+        btn.style.color = 'var(--accent)';
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.style.borderColor = '';
+          btn.style.color = '';
+        }, 2000);
+      });
+    }
+
+    // Initialize QR code after DOM ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadQRCode);
+    } else {
+      loadQRCode();
+    }
+
+    // Konami code easter egg (debounced)
     let konami = [];
     const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+    let konamiTimeout;
     document.addEventListener('keydown', (e) => {
+      clearTimeout(konamiTimeout);
       konami.push(e.code);
       if (konami.length > konamiCode.length) konami.shift();
       if (konami.join(',') === konamiCode.join(',')) {
         document.body.style.filter = 'hue-rotate(180deg) invert(1)';
-        setTimeout(() => document.body.style.filter = '', 3000);
+        konamiTimeout = setTimeout(() => document.body.style.filter = '', 3000);
         konami = [];
       }
     });
+
+    // Passive event listeners for better scroll performance
+    // Removed mouse-move listeners on cards - was causing layout thrashing
   </script>
 </body>
 </html>
